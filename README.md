@@ -60,9 +60,9 @@
 
     <script>
         // --- HiveMQ WebSockets Production Tunneling Declarations ---
-        const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort   = 8884; // Standard cloud broker WebSockets SSL Port
-        const mqttUser   = "ESP32_power_detect";
+        const mqttServer = "03296b8eda5d43dfbdd836411b8b6c18.s1.eu.hivemq.cloud";
+        const mqttPort   = 8883; // Standard cloud broker WebSockets SSL Port
+        const mqttUser   = "power_detect";
         const mqttPass   = "gp2powerDetect";
         const topic      = "home/power/status";
 
