@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Power Status Display Panel</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -57,17 +57,18 @@
         <div id="status-msg">Connecting to Server...</div>
     </div>
 
-    <script>
+    <script type="text/javascript">
+        // Ensure parameters point perfectly to your assigned cloud cluster identity
         const mqttServer = "03296b8eda5d43dfbdd836411b8b6c18.s1.eu.hivemq.cloud";
-        const mqttPort   = 443; // Uses standard SSL port to bypass network blocks
+        const mqttPort   = 443; 
         const mqttUser   = "power_detect";
         const mqttPass   = "gp2powerDetect";
         const topic      = "home/power/status";
 
         const clientId = "WebClient-" + Math.random().toString(16).substr(2, 8);
         
-        // Correct initialization structure for Paho over secure web networks
-        const client = new Paho.MQTT.Client(mqttServer, mqttPort, clientId);
+        // CRITICAL FIX: HiveMQ Cloud serverless systems require explicit mapping of host, port, path, and client identity
+        const client = new Paho.MQTT.Client(mqttServer, Number(mqttPort), "/mqtt", clientId);
 
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
@@ -82,23 +83,25 @@
             onFailure: onFailure
         };
 
+        console.log("Triggering connection link to broker...");
         client.connect(options);
 
         function onConnect() {
-            console.log("Securely bridged with HiveMQ WebSockets");
+            console.log("Success: Securely bridged with HiveMQ WebSockets Matrix");
             document.getElementById("status-msg").innerText = "WAITING FOR ESP32 DATA...";
             document.getElementById("status-msg").style.color = "#ff9800"; 
             client.subscribe(topic);
         }
 
         function onFailure(message) {
-            console.log("Handshake failure:", message);
+            console.log("Handshake failure details:", message);
             document.getElementById("status-msg").innerText = "CONNECTION FAILED: " + message.errorMessage;
             document.getElementById("status-msg").style.color = "#f44336"; 
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
+                console.log("Lost Link Context:", responseObject.errorMessage);
                 document.getElementById("status-msg").innerText = "OFFLINE (SERVER LOST)";
                 document.getElementById("status-msg").style.color = "#f44336";
                 document.getElementById("lightBulb").className = "bulb dark";
@@ -107,7 +110,7 @@
 
         function onMessageArrived(message) {
             const payload = message.payloadString.trim();
-            console.log("Data received from broker: " + payload);
+            console.log("Data packet processed -> Value: " + payload);
             const bulb = document.getElementById("lightBulb");
             const text = document.getElementById("status-msg");
 
