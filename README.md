@@ -3,125 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Status Display Panel</title>
+    <title>Power Status Monitor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
             margin: 0;
         }
-        .panel {
-            background: #1e1e1e;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            border: 1px solid #2d2d2d;
-        }
         .bulb {
-            font-size: 100px;
-            margin: 30px 0;
+            width: 100px;
+            height: 100px;
+            background-color: #555;
+            border-radius: 50%;
+            margin-bottom: 20px;
             transition: all 0.3s ease;
-            display: inline-block;
+            box-shadow: 0 0 10px #000 inset;
         }
-        /* Dynamic indicator rendering configurations */
-        .bulb.glowing {
-            text-shadow: 0 0 50px #ffeb3b, 0 0 100px #ffeb3b;
-            transform: scale(1.1);
-            opacity: 1.0;
+        /* Classes applied dynamically via JavaScript */
+        .bulb.on {
+            background-color: #ffeb3b;
+            box-shadow: 0 0 50px #ffeb3b, 0 0 100px #ffeb3b;
         }
-        .bulb.dark {
-            opacity: 0.15;
-            text-shadow: none;
-            transform: scale(1.0);
+        .bulb.off {
+            background-color: #333;
+            box-shadow: none;
         }
-        #status-msg {
-            font-size: 1.6rem;
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+        }
+        #statusText {
             font-weight: bold;
-            letter-spacing: 1px;
-            margin-top: 10px;
-            transition: color 0.3s ease;
         }
     </style>
 </head>
 <body>
-
-    <div class="panel">
-        <h2>Mains Supply Indicator</h2>
-        <div id="lightBulb" class="bulb dark">💡</div>
-        <div id="status-msg">Connecting to Server...</div>
-    </div>
-
+    <div id="lightBulb" class="bulb off"></div>
+    <h1>Status: <span id="statusText">Connecting...</span></h1>
     <script>
-        // --- HiveMQ WebSockets Production Tunneling Declarations ---
+        // --- HiveMQ WebSockets Configuration ---
         const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort   = 8884; // Standard cloud broker WebSockets SSL Port
-        const mqttUser   = "ESP32_power_detect";
-        const mqttPass   = "gp2powerDetect";
-        const topic      = "home/power/status";
+        const mqttPort = 443; // FIX: Port 443 bypasses network firewalls on secure WebSockets (WSS)
+        const mqttUser = "ESP32_power_detect";
+        const mqttPass = "gp2powerDetect";
+        const topic = "home/power/status";
 
-        // Generate unique client signature token to allow parallel device viewing
+        // Generate random client ID for the browser
         const clientId = "WebClient-" + Math.random().toString(16).substr(2, 8);
-        
-        // Initialize client session handler mapping
+
+        // Initialize MQTT Client with standard path structure
         const client = new Paho.MQTT.Client(mqttServer, mqttPort, "/mqtt", clientId);
 
+        // Set callback handlers
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
 
+        // Connect options with SSL enabled
         const options = {
             useSSL: true,
+            timeout: 10,
+            keepAliveInterval: 60,
             userName: mqttUser,
             password: mqttPass,
             onSuccess: onConnect,
             onFailure: onFailure
         };
 
-        // Open non-blocking socket link 
+        // Attempt connection
         client.connect(options);
 
         function onConnect() {
-            console.log("Securely bridged with HiveMQ WebSockets");
-            document.getElementById("status-msg").innerText = "WAITING FOR DATA...";
-            document.getElementById("status-msg").style.color = "#ff9800"; // Orange standby text
+            console.log("Connected to HiveMQ Cloud");
+            document.getElementById("statusText").innerText = "Waiting for data...";
+            document.getElementById("statusText").style.color = "#ff9800"; // Standby Orange
             client.subscribe(topic);
         }
 
         function onFailure(message) {
-            console.log("Connection parameter handshake failed: " + message.errorMessage);
-            document.getElementById("status-msg").innerText = "CONNECTION FAILED";
-            document.getElementById("status-msg").style.color = "#f44336"; 
+            console.log("Connection failed: " + message.errorMessage);
+            document.getElementById("statusText").innerText = "Connection Failed";
+            document.getElementById("statusText").style.color = "#f44336"; // Error Red
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
-                document.getElementById("status-msg").innerText = "OFFLINE (SERVER LOST)";
-                document.getElementById("status-msg").style.color = "#f44336";
-                const bulb = document.getElementById("lightBulb");
-                bulb.className = "bulb dark";
+                console.log("Connection lost: " + responseObject.errorMessage);
+                document.getElementById("statusText").innerText = "Disconnected";
+                document.getElementById("statusText").style.color = "#f44336";
+                document.getElementById("lightBulb").className = "bulb off";
             }
         }
 
         function onMessageArrived(message) {
-            const payload = message.payloadString;
-            console.log("Payload packet ingested: " + payload);
+            const payload = message.payloadString.trim();
+            console.log("Message arrived: " + payload);
             const bulb = document.getElementById("lightBulb");
-            const text = document.getElementById("status-msg");
+            const statusText = document.getElementById("statusText");
 
             if (payload === "ON") {
-                bulb.className = "bulb glowing";
-                text.innerText = "LIGHT IS ON";
-                text.style.color = "#4caf50"; // Clean high-visibility dashboard green
+                bulb.className = "bulb on";
+                statusText.innerText = "Light Active";
+                statusText.style.color = "#ffeb3b";
             } else if (payload === "OFF") {
-                bulb.className = "bulb dark";
-                text.innerText = "LIGHT IS OFF";
-                text.style.color = "#f44336"; // Deep alerting danger panel red
+                bulb.className = "bulb off";
+                statusText.innerText = "No Light";
+                statusText.style.color = "#aaa";
             }
         }
     </script>
