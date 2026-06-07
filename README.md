@@ -1,4 +1,4 @@
-# power-detect
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -69,14 +69,16 @@
         // Generate unique client signature token to allow parallel device viewing
         const clientId = "WebClient-" + Math.random().toString(16).substr(2, 8);
         
-        // Initialize client session handler mapping
-        const client = new Paho.MQTT.Client(mqttServer, mqttPort, "/mqtt", clientId);
+        // FIX: The path must be empty "" for HiveMQ Cloud server handshakes to succeed
+        const client = new Paho.MQTT.Client(mqttServer, mqttPort, "", clientId);
 
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
 
         const options = {
             useSSL: true,
+            timeout: 3,
+            keepAliveInterval: 60,
             userName: mqttUser,
             password: mqttPass,
             onSuccess: onConnect,
@@ -101,6 +103,7 @@
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
+                console.log("Disconnected: " + responseObject.errorMessage);
                 document.getElementById("status-msg").innerText = "OFFLINE (SERVER LOST)";
                 document.getElementById("status-msg").style.color = "#f44336";
                 const bulb = document.getElementById("lightBulb");
@@ -109,7 +112,7 @@
         }
 
         function onMessageArrived(message) {
-            const payload = message.payloadString;
+            const payload = message.payloadString.trim();
             console.log("Payload packet ingested: " + payload);
             const bulb = document.getElementById("lightBulb");
             const text = document.getElementById("status-msg");
