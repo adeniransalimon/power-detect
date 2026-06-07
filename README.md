@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -58,22 +59,22 @@
 
     <script>
         const mqttServer = "03296b8eda5d43dfbdd836411b8b6c18.s1.eu.hivemq.cloud";
-        const mqttPort   = 8884; 
+        const mqttPort   = 443; // Uses standard SSL port to bypass network blocks
         const mqttUser   = "power_detect";
         const mqttPass   = "gp2powerDetect";
         const topic      = "home/power/status";
 
         const clientId = "WebClient-" + Math.random().toString(16).substr(2, 8);
         
-        // Path configuration cleared out to resolve secure cloud broker handshake errors
-        const client = new Paho.MQTT.Client(mqttServer, mqttPort, "", clientId);
+        // Correct initialization structure for Paho over secure web networks
+        const client = new Paho.MQTT.Client(mqttServer, mqttPort, clientId);
 
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
 
         const options = {
             useSSL: true,
-            timeout: 5,
+            timeout: 10,
             keepAliveInterval: 60,
             userName: mqttUser,
             password: mqttPass,
@@ -91,8 +92,8 @@
         }
 
         function onFailure(message) {
-            console.log("Handshake failed: " + message.errorMessage);
-            document.getElementById("status-msg").innerText = "CONNECTION FAILED";
+            console.log("Handshake failure:", message);
+            document.getElementById("status-msg").innerText = "CONNECTION FAILED: " + message.errorMessage;
             document.getElementById("status-msg").style.color = "#f44336"; 
         }
 
@@ -106,7 +107,7 @@
 
         function onMessageArrived(message) {
             const payload = message.payloadString.trim();
-            console.log("MQTT Ingestion Matrix -> Data Received: " + payload);
+            console.log("Data received from broker: " + payload);
             const bulb = document.getElementById("lightBulb");
             const text = document.getElementById("status-msg");
 
