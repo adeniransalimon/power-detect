@@ -67,7 +67,7 @@
         // Connect options with SSL enabled
         const options = {
             useSSL: true
-            timeout: 15,
+            timeout: 10,
             keepAliveInterval: 60,
             userName: mqttUser,
             password: mqttPass,
