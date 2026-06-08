@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -47,16 +48,14 @@
     <h1>Status: <span id="statusText">Connecting...</span></h1>
 
     <script>
-        // Secure configuration parameters matching your HiveMQ cluster console
         const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort = 443; // Port 443 routes secure WebSockets (WSS) cleanly over GitHub Pages
+        const mqttPort = 443; 
         const mqttUser = "ESP32_power_detect";
         const mqttPass = "gp2powerDetect";
         const topic = "home/power/status";
 
         const clientId = "WebClient-" + Math.random().toString(16).substr(2, 8);
 
-        // Initialize Paho Client with explicit broker settings
         const client = new Paho.MQTT.Client(mqttServer, mqttPort, "/mqtt", clientId);
 
         client.onConnectionLost = onConnectionLost;
@@ -75,21 +74,21 @@
         client.connect(options);
 
         function onConnect() {
-            console.log("Successfully bridged with HiveMQ WebSockets Matrix.");
+            console.log("Connected to HiveMQ");
             document.getElementById("statusText").innerText = "Waiting for data...";
-            document.getElementById("statusText").style.color = "#ff9800"; 
+            document.getElementById("statusText").style.color = "#ff9800";
             client.subscribe(topic);
         }
 
         function onFailure(message) {
-            console.log("Handshake error context: " + message.errorMessage);
+            console.log("Connection failed: " + message.errorMessage);
             document.getElementById("statusText").innerText = "Connection Failed";
             document.getElementById("statusText").style.color = "#f44336";
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
-                console.log("Disconnected: " + responseObject.errorMessage);
+                console.log("Connection lost: " + responseObject.errorMessage);
                 document.getElementById("statusText").innerText = "Disconnected";
                 document.getElementById("statusText").style.color = "#f44336";
                 document.getElementById("lightBulb").className = "bulb off";
@@ -97,8 +96,10 @@
         }
 
         function onMessageArrived(message) {
-            const payload = message.payloadString.trim();
-            console.log("Data packet processed -> Value: " + payload);
+            // DEEP DEBUG FIX: Clean hidden whitespaces, line breaks (\r\n), and force uppercase
+            const payload = message.payloadString.replace(/[\r\n]+/g, "").trim().toUpperCase();
+            console.log("Sanitized Data Processing Matrix -> Received: '" + payload + "'");
+            
             const bulb = document.getElementById("lightBulb");
             const statusText = document.getElementById("statusText");
 
@@ -110,6 +111,9 @@
                 bulb.className = "bulb off";
                 statusText.innerText = "No Light";
                 statusText.style.color = "#aaa";
+            } else {
+                // Diagnostic log catch for unmapped payload issues
+                console.log("Unmapped payload state structure dropped: " + payload);
             }
         }
     </script>
