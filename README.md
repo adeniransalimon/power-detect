@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,7 +26,6 @@
             transition: all 0.3s ease;
             box-shadow: 0 0 10px #000 inset;
         }
-        /* Classes applied dynamically via JavaScript */
         .bulb.on {
             background-color: #ffeb3b;
             box-shadow: 0 0 50px #ffeb3b, 0 0 100px #ffeb3b;
@@ -46,27 +46,25 @@
 <body>
     <div id="lightBulb" class="bulb off"></div>
     <h1>Status: <span id="statusText">Connecting...</span></h1>
+
     <script>
-        // --- HiveMQ WebSockets Configuration ---
+        // Secure configuration parameters matching your HiveMQ cluster console
         const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort = 8883; // FIX: Port 443 bypasses network firewalls on secure WebSockets(WSS)
+        const mqttPort = 443; // Port 443 routes secure WebSockets (WSS) cleanly over GitHub Pages
         const mqttUser = "ESP32_power_detect";
         const mqttPass = "gp2powerDetect";
         const topic = "home/power/status";
 
-        // Generate random client ID for the browser
         const clientId = "WebClient-" + Math.random().toString(16).substr(2, 8);
 
-        // Initialize MQTT Client with standard path structure
+        // Initialize Paho Client with explicit broker settings
         const client = new Paho.MQTT.Client(mqttServer, mqttPort, "/mqtt", clientId);
 
-        // Set callback handlers
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
 
-        // Connect options with SSL enabled
         const options = {
-            useSSL: true
+            useSSL: true,
             timeout: 10,
             keepAliveInterval: 60,
             userName: mqttUser,
@@ -75,25 +73,24 @@
             onFailure: onFailure
         };
 
-        // Attempt connection
         client.connect(options);
 
         function onConnect() {
-            console.log("Connected to HiveMQ Cloud");
+            console.log("Successfully bridged with HiveMQ WebSockets Matrix.");
             document.getElementById("statusText").innerText = "Waiting for data...";
-            document.getElementById("statusText").style.color = "#ff9800"; // Standby Orange
+            document.getElementById("statusText").style.color = "#ff9800"; 
             client.subscribe(topic);
         }
 
         function onFailure(message) {
-            console.log("Connection failed: " + message.errorMessage);
+            console.log("Handshake error context: " + message.errorMessage);
             document.getElementById("statusText").innerText = "Connection Failed";
-            document.getElementById("statusText").style.color = "#f44336"; // Error Red
+            document.getElementById("statusText").style.color = "#f44336";
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
-                console.log("Connection lost: " + responseObject.errorMessage);
+                console.log("Disconnected: " + responseObject.errorMessage);
                 document.getElementById("statusText").innerText = "Disconnected";
                 document.getElementById("statusText").style.color = "#f44336";
                 document.getElementById("lightBulb").className = "bulb off";
@@ -101,8 +98,8 @@
         }
 
         function onMessageArrived(message) {
-            const payload = message.payloadString
-            console.log("Message arrived: " + payload);
+            const payload = message.payloadString.trim();
+            console.log("Data packet processed -> Value: " + payload);
             const bulb = document.getElementById("lightBulb");
             const statusText = document.getElementById("statusText");
 
