@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -103,11 +102,11 @@
             const bulb = document.getElementById("lightBulb");
             const statusText = document.getElementById("statusText");
 
-            if (payload === "OFF") {
+            if (payload === "ON") {
                 bulb.className = "bulb on";
                 statusText.innerText = "Light Active";
                 statusText.style.color = "#ffeb3b";
-            } else if (payload === "ON") {
+            } else if (payload === "OFF") {
                 bulb.className = "bulb off";
                 statusText.innerText = "No Light";
                 statusText.style.color = "#aaa";
