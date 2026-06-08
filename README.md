@@ -48,7 +48,7 @@
 
     <script>
         const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort = 8883; 
+        const mqttPort = 8884; 
         const mqttUser = "ESP32_power_detect";
         const mqttPass = "gp2powerDetect";
         const topic = "home/power/status";
