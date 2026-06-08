@@ -49,7 +49,7 @@
     <script>
         // --- HiveMQ WebSockets Configuration ---
         const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort = 8884; // FIX: Port 443 bypasses network firewalls on secure WebSockets(WSS)
+        const mqttPort = 8883; // FIX: Port 443 bypasses network firewalls on secure WebSockets(WSS)
         const mqttUser = "ESP32_power_detect";
         const mqttPass = "gp2powerDetect";
         const topic = "home/power/status";
@@ -106,11 +106,11 @@
             const bulb = document.getElementById("lightBulb");
             const statusText = document.getElementById("statusText");
 
-            if (payload === "ON") {
+            if (payload === "OFF") {
                 bulb.className = "bulb on";
                 statusText.innerText = "Light Active";
                 statusText.style.color = "#ffeb3b";
-            } else if (payload === "OFF") {
+            } else if (payload === "ON") {
                 bulb.className = "bulb off";
                 statusText.innerText = "No Light";
                 statusText.style.color = "#aaa";
