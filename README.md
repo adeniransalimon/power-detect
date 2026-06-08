@@ -49,7 +49,7 @@
     <script>
         // --- HiveMQ WebSockets Configuration ---
         const mqttServer = "082ee80754e24521b3c0e901a1ac9c31.s1.eu.hivemq.cloud";
-        const mqttPort = 8883; // FIX: Port 443 bypasses network firewalls on secure WebSockets(WSS)
+        const mqttPort = 8884; // FIX: Port 443 bypasses network firewalls on secure WebSockets(WSS)
         const mqttUser = "ESP32_power_detect";
         const mqttPass = "gp2powerDetect";
         const topic = "home/power/status";
@@ -67,7 +67,7 @@
         // Connect options with SSL enabled
         const options = {
             useSSL: true
-            timeout: 30,
+            timeout: 15,
             keepAliveInterval: 60,
             userName: mqttUser,
             password: mqttPass,
