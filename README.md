@@ -66,9 +66,7 @@
 
         // Connect options with SSL enabled
         const options = {
-            useSSL: true,
-            timeout: 10,
-            keepAliveInterval: 60,
+            useSSL: true
             userName: mqttUser,
             password: mqttPass,
             onSuccess: onConnect,
@@ -101,7 +99,7 @@
         }
 
         function onMessageArrived(message) {
-            const payload = message.payloadString.trim();
+            const payload = message.payloadString
             console.log("Message arrived: " + payload);
             const bulb = document.getElementById("lightBulb");
             const statusText = document.getElementById("statusText");
